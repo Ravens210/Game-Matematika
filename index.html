@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Jelajah Kota — Arena Balon Eksponen</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Kanvas Dunia 3D Kota -->
+  <div id="game"></div>
+
+  <!-- HUD Dunia Kota -->
+  <div id="pill">Koin <b id="coinText">0 / 14</b></div>
+
+  <nav id="side">
+    <button class="rb" data-panel="shop"><span>🛒</span>Toko</button>
+    <button class="rb" data-panel="profile"><span>👤</span>Profil</button>
+    <button class="rb" data-panel="emotes"><span>😀</span>Emote</button>
+    <button class="rb" data-panel="items"><span>🎒</span>Item</button>
+    <button class="rb" id="soundToggle" aria-pressed="true" title="Suara langkah & koin"><span>🔊</span>Suara</button>
+  </nav>
+
+  <div id="joy"><div id="knob"></div></div>
+  <button id="jump" aria-label="Lompat">Lompat</button>
+  <div id="hint">Klik layar untuk mengunci mouse · Gerak mouse: kamera · W/A/S/D: jalan · Klik kanan / Shift: lari · Spasi: lompat · F: bicara NPC · E: masuk Markas Merah / Biru</div>
+  <div id="toast"></div>
+  <button id="redDoorBtn">🎯 Masuk Arena Balon Eksponen (Tekan E)</button>
+  <button id="blueDoorBtn">📐 Masuk Arena Grafik SPLDV (Tekan E)</button>
+
+  <div id="panel" hidden>
+    <div class="card">
+      <h2 id="pTitle"></h2>
+      <div id="pBody"></div>
+      <button id="pClose">Tutup</button>
+    </div>
+  </div>
+
+  <!-- Overlay Mini-Game FPS Tembak Balon Eksponen -->
+  <div id="fpsOverlay">
+    <canvas id="fpsCanvas"></canvas>
+
+    <div id="fpsTopBar">
+      <div class="statPill levelPill">🏆 <span id="fpsLevelLabel">Level 1 / 5</span></div>
+      <div class="statPill">📝 <span id="fpsQuestionCount">Soal 1 / 5</span></div>
+      <div class="statPill scorePill">🪙 <span id="fpsScoreLabel">Skor: 0</span></div>
+      <button class="fpsIconBtn" id="fpsLevelSelectBtn" title="Pilih Level">📋</button>
+      <button class="fpsIconBtn" id="fpsMusicBtn" title="Musik Latar">🎵</button>
+      <button class="fpsIconBtn" id="fpsSoundBtn" title="Suara Efek">🔊</button>
+      <button class="fpsIconBtn exitBtn" id="fpsExitBtn" title="Kembali ke Kota">✖</button>
+    </div>
+
+    <!-- Papan Pertanyaan di Samping Penembak -->
+    <aside id="questionDock">
+      <div class="qHeader">
+        <span id="qLevelTopic">Level 1 · Pangkat Positif</span>
+        <span id="qBadge">1/5</span>
+      </div>
+      <div class="qText" id="qTextDisplay">Hitunglah 2<sup>3</sup></div>
+      <div class="qSub">Arahkan meriam cat &amp; tembak balon dengan angka jawaban yang benar!</div>
+    </aside>
+
+    <!-- Bidikan FPS -->
+    <div id="crosshair"><div class="ring"></div></div>
+
+    <!-- Modal Transisi Level / Pilih Level / Tamat -->
+    <div id="fpsModal">
+      <div class="fpsModalCard">
+        <h2 id="modalTitle">Level 1 Selesai!</h2>
+        <p id="modalDesc">Hebat! Kamu berhasil menembak semua balon eksponen dengan tepat.</p>
+        <div class="lvlGrid" id="modalLevelGrid"></div>
+        <div class="modalActions">
+          <button class="fpsBtnPrimary" id="modalNextBtn">Lanjut ke Level 2 ➔</button>
+          <button class="fpsBtnSecondary" id="modalDanceBtn">💃 Lihat Tarian Kemenangan</button>
+          <button class="fpsBtnSecondary" id="modalCloseBtn">Kembali ke Permainan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay Mini-Game Markas Biru: Platformer 2D Koordinat Kartesius SPLDV -->
+  <div id="blueOverlay">
+    <canvas id="blueCanvas"></canvas>
+
+    <!-- HUD Soal SPLDV di Atas Tengah Permainan -->
+    <div id="blueTopHUD">
+      <div id="blueTopBar">
+        <div class="bluePill levelPill">📐 <span id="blueLevelLabel">Level 1 / 5</span></div>
+        <div class="bluePill roomPill">🚪 <span id="blueRoomLabel">Ruangan 1 · Garis (i)</span></div>
+        <div class="bluePill">💎 <span id="blueCrystalStatus">Kristal: 0 / 2</span></div>
+        <button class="blueIconBtn" id="blueHintBtn" title="Petunjuk Titik Bantu">💡</button>
+        <button class="blueIconBtn" id="blueLevelSelectBtn" title="Pilih Level">📋</button>
+        <button class="blueIconBtn" id="blueMusicBtn" title="Musik Latar">🎵</button>
+        <button class="blueIconBtn" id="blueSoundBtn" title="Suara Efek">🔊</button>
+        <button class="blueIconBtn exitBtn" id="blueExitBtn" title="Kembali ke Kota">✖</button>
+      </div>
+
+      <div id="blueQuestionCard">
+        <div class="bqEqRow">
+          <span class="bqEqTag eq1 active" id="bqEq1Text">(i) x + y = 7</span>
+          <span class="bqEqTag eq2" id="bqEq2Text">(ii) x − y = 1</span>
+        </div>
+        <div id="blueMissionText">Cari Bola Kristal A &amp; B melewati rintangan, lalu pilih titik koordinatnya untuk memunculkan Altar!</div>
+      </div>
+    </div>
+
+    <!-- Dialog Pilih Koordinat Altar Saat Mendapatkan Bola Kristal -->
+    <div id="coordPickerModal">
+      <div class="coordCard">
+        <h3 id="coordPickerTitle">🔮 Bola Kristal Didapatkan!</h3>
+        <p id="coordPickerDesc">Pilih titik koordinat (sumbu-x, sumbu-y, atau titik pada garis persamaan aktif) untuk memunculkan Altar, atau klik langsung pada bidang Kartesius:</p>
+        <div class="axisQuickRow">
+          <button class="axisQuickBtn" id="snapXAxisBtn">📍 Titik Sumbu-X (y = 0)</button>
+          <button class="axisQuickBtn" id="snapYAxisBtn">📍 Titik Sumbu-Y (x = 0)</button>
+        </div>
+        <div class="stepperGrid">
+          <div class="stepperBox">
+            <label>Nilai Sumbu X</label>
+            <div class="stepperCtrl">
+              <button class="stepBtn" id="xMinusBtn">−</button>
+              <span class="stepVal" id="pickXVal">0</span>
+              <button class="stepBtn" id="xPlusBtn">+</button>
+            </div>
+          </div>
+          <div class="stepperBox">
+            <label>Nilai Sumbu Y</label>
+            <div class="stepperCtrl">
+              <button class="stepBtn" id="yMinusBtn">−</button>
+              <span class="stepVal" id="pickYVal">0</span>
+              <button class="stepBtn" id="yPlusBtn">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="coordPreviewBadge" id="coordPreviewText">Titik Altar: (0, 0)</div>
+        <button class="blueBtnPrimary" id="confirmAltarBtn">✨ Munculkan Altar di Titik Ini</button>
+      </div>
+    </div>
+
+    <!-- Kontrol Jalan & Double Jump -->
+    <div id="blueTouchControls">
+      <div class="touchDpad">
+        <button class="bTouchBtn" id="bLeftBtn" aria-label="Jalan Kiri">◀</button>
+        <button class="bTouchBtn" id="bRightBtn" aria-label="Jalan Kanan">▶</button>
+      </div>
+      <button class="bTouchBtn jumpBtn" id="bJumpBtn" aria-label="Lompat Ganda">Lompat<br>(2x)</button>
+    </div>
+
+    <!-- Modal Selesai Level / Pilih Level -->
+    <div id="blueModal">
+      <div class="blueModalCard">
+        <h2 id="blueModalTitle">Level 1 Selesai!</h2>
+        <p id="blueModalDesc">Hebat! Titik potong kedua persamaan telah ditemukan.</p>
+        <div class="blueLvlGrid" id="blueModalLevelGrid"></div>
+        <div class="modalActions">
+          <button class="blueBtnPrimary" id="blueModalNextBtn">Lanjut ke Level 2 ➔</button>
+          <button class="blueBtnSecondary" id="blueModalCloseBtn">Kembali ke Permainan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Library 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Urutan pemuatan skrip penting: jangan ditukar -->
+  <script src="js/core.js"></script>
+  <script src="js/ui-panels.js"></script>
+  <script src="js/fps-game.js"></script>
+  <script src="js/blue-game.js"></script>
+  <script src="js/world-sfx.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
